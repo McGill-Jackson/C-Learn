@@ -1,12 +1,3 @@
-//一元多项式的基础运算
-//求值
-//求导
-//求积分
-//加
-//减
-//乘
-//读入
-//输出
 
 #define _CRT_SECURE_NO_WARNINGS
 #include<stdio.h>
@@ -14,15 +5,37 @@
 #include<string.h>
 #include<time.h>
 #include<windows.h>
+#define MAXSIZE	10000
 
-//一元多项式元素	
+//一元多项式元素(链表)	
 typedef struct node{
 	float coef;
 	int expn;
 	struct node* next;
 }Poly,*PolyPtr;
 
-void Destroy(PolyPtr a);
+//一元多项式元素(数组)
+//typedef struct{
+//	int coefArray[MAXSIZE + 1];
+//	int Hightpower;//expn的最大值 
+//}ArrayPoly;
+
+float GetValue(PolyPtr a);//求一元多项式的值
+PolyPtr GetDerivation(PolyPtr a);//对一元多项式求导
+PolyPtr Getlntegration(PolyPtr a);//对一元多项式求积分
+PolyPtr AddPoly(PolyPtr a, PolyPtr b);//两个一元多项式的和
+PolyPtr MinusPoly(PolyPtr a, PolyPtr b);//两个一元多项式的差
+PolyPtr TimesPoly(PolyPtr a, PolyPtr b);//乘法第一种形式
+PolyPtr TimesPoly2(PolyPtr a, PolyPtr b);//乘法第二种形式
+PolyPtr GetPoly(char* filename);//从文件读入数据
+void Time_Spend(PolyPtr a, PolyPtr b);
+void Time_Spend2(PolyPtr a, PolyPtr b);//时间测试函数
+void PutPoly(char* filename);//随机生成数据写入文件
+void testTimes(PolyPtr a, PolyPtr b);//乘法测试函数
+int NumPoly(PolyPtr a);//数一元多项式的项数
+void SortPoly(PolyPtr a);//一元多项式升幂排列
+void Destroy(PolyPtr a);//释放内存
+void PrintPoly(PolyPtr a);//将一元多项式输出
 
 //求值
 float GetValue(PolyPtr a){
@@ -231,16 +244,60 @@ PolyPtr TimesPoly(PolyPtr a, PolyPtr b){
 	}
 	return c;
 }
+//乘法第二种方式
+PolyPtr TimesPoly2(PolyPtr a, PolyPtr b){
 
+
+	PolyPtr c = (PolyPtr)malloc(sizeof(Poly));
+	PolyPtr pa, pb, pc = c;
+	if (a == NULL || b == NULL || c == NULL)
+		return NULL;
+	pa = a->next;
+	pb = b->next;
+	pc->next = NULL;
+	pc->coef = 0;
+	pc->expn = 0;
+
+	while (pa != NULL){
+		pb = b->next;
+		PolyPtr d = (PolyPtr)malloc(sizeof(Poly));
+		PolyPtr pd = d;
+		d->next = NULL;
+		d->coef = 0;
+		d->expn = 0;
+
+		while (pb != NULL){
+			
+			PolyPtr r = (PolyPtr)malloc(sizeof(Poly));
+			r->next = NULL;
+			r->coef = pa->coef*pb->coef;
+			r->expn = pa->expn + pb->expn;
+			pd->next = r;
+			pd = r;
+			pb = pb->next;
+		}
+		c = AddPoly(c, d);
+		Destroy(d);
+		pa = pa->next;
+	}
+	return c;
+}
 //时间测试函数
 void Time_Spend(PolyPtr a, PolyPtr b){
 	clock_t begin, duration;
 	begin = clock();
-	TimesPoly(a, b);
+	TimesPoly(a, b);//带测函数
 	duration = clock() - begin;
 	printf("用时约%d毫秒\n", duration );
 }
 
+void Time_Spend2(PolyPtr a, PolyPtr b){
+	clock_t begin, duration;
+	begin = clock();
+	TimesPoly2(a, b);
+	duration = clock() - begin;
+	printf("用时约%d毫秒\n", duration);
+}
 //随机生成数据写入文件
 void PutPoly(char* filename){
 	FILE* fp = NULL;
@@ -248,15 +305,27 @@ void PutPoly(char* filename){
 	int b = 0;
 	srand((unsigned)time(NULL));
 	fp = fopen(filename, "w+");
-	for (int i = 0; i < 300; i++){
+	for (int i = 0; i < 1000; i++){
 		a = (float)(rand() % 100);
 		b = rand() % 100;
-		fprintf(fp, "%f %d ", a, b);
+		fprintf(fp, "%.1f %d ", a, b);
 	}
 	fclose(fp);
 }
 
-//读入
+//乘法测试函数
+void testTimes(PolyPtr a, PolyPtr b){
+	Time_Spend(a, b);
+	PolyPtr c = TimesPoly(a, b);
+	PrintPoly(c);
+
+	Time_Spend2(a, b);
+	PolyPtr d = TimesPoly2(a, b);
+	PrintPoly(d);
+	
+	return;
+}
+//从文件读入数据
 PolyPtr GetPoly(char* filename){
 	PolyPtr poly = NULL, p, pTail;
 	FILE* fp = NULL;
@@ -286,6 +355,20 @@ PolyPtr GetPoly(char* filename){
 	return poly;
 }
 
+//将结果数据写入文件
+void PutsPoly(char* filename,PolyPtr c){
+	FILE* fp = NULL;
+	
+	PolyPtr pc = c->next;
+	fp = fopen(filename, "w+");
+	while (pc != NULL){
+		
+		fprintf(fp, "%.1f %d ", pc->coef, pc->expn);
+		pc = pc->next;
+	}
+	fclose(fp);
+}
+
 //数一元多项式的项数
 int NumPoly(PolyPtr a){
 	PolyPtr pa;
@@ -306,7 +389,8 @@ void SortPoly(PolyPtr a){
 	
 	for (int i = 0; i < NumPoly(a) - 1; i++){
 		c = a->next;
-		for (int j = 0; j < NumPoly(a) - 1 - i; j++){
+		int linshi = i;
+		for (int j = 0; j < NumPoly(a) - 1-linshi; j++){
 			pa = c;
 			pb = c->next;
 
@@ -314,6 +398,7 @@ void SortPoly(PolyPtr a){
 				pa->coef = pa->coef + pb->coef;
 				pa->next = pb->next;
 				free(pb);
+				linshi--;//当释放掉一个结点,内部循环次数会变少,将linshi减一可以让比较次数正常
 				continue;
 			}
 			if (pa->expn > pb->expn){
@@ -394,7 +479,7 @@ void Enter(){
 	while (1){
 		
 		int choice = Menu();
-		if (choice < 0 || choice > 8) {
+		if (choice < 0 || choice > 9) {
 			printf("您的输入无效!\n");
 			continue;
 		}
@@ -412,26 +497,31 @@ void Enter(){
 		case 2:
 			Destroy(c);
 			c = GetDerivation(a);
+			PutsPoly(".\\Polythree.txt", c);//将结果写入3号文本(下同)
 			printf("运算成功!\n");
 			break;
 		case 3:
 			Destroy(c);
 			c = Getlntegration(a);
+			PutsPoly(".\\Polythree.txt", c);
 			printf("运算成功!\n");
 			break;
 		case 4:
 			Destroy(c);
 			c = AddPoly(a, b);
+			PutsPoly(".\\Polythree.txt", c);
 			printf("运算成功!\n");
 			break;
 		case 5:
 			Destroy(c);
 			c = MinusPoly(a, b);
+			PutsPoly(".\\Polythree.txt", c);
 			printf("运算成功!\n");
 			break;
 		case 6:
 			Destroy(c);
 			c = TimesPoly(a, b);
+			PutsPoly(".\\Polythree.txt", c);
 			printf("运算成功!\n");
 			break;
 		case 7:
@@ -439,7 +529,8 @@ void Enter(){
 			SortPoly(a);
 			b=GetPoly(".\\Polytwo.txt");
 			SortPoly(b);
-			Time_Spend(a, b);
+			//Time_Spend(a, b);
+			//Time_Spend2(a, b);
 			break;
 		case 8:
 			printf("\n这是用户的第一个一元多项式:");
@@ -448,6 +539,9 @@ void Enter(){
 			PrintPoly(b);
 			printf("\n这是用户最近进行的计算的结果:\n");
 			PrintPoly(c);
+			break;
+		case 9:
+			testTimes(a, b);
 			break;
 		}
 	}

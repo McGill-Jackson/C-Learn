@@ -26,5 +26,8 @@
     <Text Include="Polytwo.txt">
       <Filter>资源文件</Filter>
     </Text>
+    <Text Include="Polythree.txt">
+      <Filter>资源文件</Filter>
+    </Text>
   </ItemGroup>
 </Project>

@@ -68,6 +68,7 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="Polyone.txt" />
+    <Text Include="Polythree.txt" />
     <Text Include="Polytwo.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
