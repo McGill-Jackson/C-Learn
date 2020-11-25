@@ -1,12 +1,11 @@
-
 #define _CRT_SECURE_NO_WARNINGS
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
 #include<time.h>
 #include<windows.h>
-#define MAXSIZE	10000
-
+#define MAXSIZE	10000//数组最大元素
+#define maxsize 1000//随机生成数据数
 //一元多项式元素(链表)	
 typedef struct node{
 	float coef;
@@ -15,10 +14,10 @@ typedef struct node{
 }Poly,*PolyPtr;
 
 //一元多项式元素(数组)
-//typedef struct{
-//	int coefArray[MAXSIZE + 1];
-//	int Hightpower;//expn的最大值 
-//}ArrayPoly;
+typedef struct{
+	float coefArray[MAXSIZE + 1];
+	int Hightpower;//expn的最大值 
+}ArrayPoly;
 
 float GetValue(PolyPtr a);//求一元多项式的值
 PolyPtr GetDerivation(PolyPtr a);//对一元多项式求导
@@ -132,7 +131,7 @@ PolyPtr AddPoly(PolyPtr a, PolyPtr b){
 	pc->coef = 0;
 	pc->expn = 0;
 
-	while (pa != NULL&&pb != NULL){
+	while ((pa != NULL)&&(pb != NULL)){
 		r = (PolyPtr)malloc(sizeof(Poly));
 		r->next = NULL;
 		if (pa->expn < pb->expn){
@@ -214,14 +213,14 @@ PolyPtr TimesPoly(PolyPtr a, PolyPtr b){
 	
 	
 	PolyPtr c = (PolyPtr)malloc(sizeof(Poly));
-	PolyPtr pa, pb, pc = c;
+	PolyPtr pa, pb, pc = NULL;
 	if (a == NULL || b == NULL || c == NULL)
 		return NULL;
 	pa = a->next;
 	pb = b->next;
-	pc->next = NULL;
-	pc->coef = 0;
-	pc->expn = 0;
+	c->next = NULL;
+	c->coef = 0;
+	c->expn = 0;
 
 	while (pa != NULL){
 		pb = b->next;
@@ -235,7 +234,9 @@ PolyPtr TimesPoly(PolyPtr a, PolyPtr b){
 			r->coef = pa->coef*pb->coef;
 			r->expn = pa->expn+pb->expn;
 			d->next = r;
+			pc = c;
 			c = AddPoly(c, d);
+			Destroy(pc);
 			free(d);
 			free(r);
 			pb = pb->next;
@@ -249,14 +250,14 @@ PolyPtr TimesPoly2(PolyPtr a, PolyPtr b){
 
 
 	PolyPtr c = (PolyPtr)malloc(sizeof(Poly));
-	PolyPtr pa, pb, pc = c;
+	PolyPtr pa, pb, pc = NULL;
 	if (a == NULL || b == NULL || c == NULL)
 		return NULL;
 	pa = a->next;
 	pb = b->next;
-	pc->next = NULL;
-	pc->coef = 0;
-	pc->expn = 0;
+	c->next = NULL;
+	c->coef = 0;
+	c->expn = 0;
 
 	while (pa != NULL){
 		pb = b->next;
@@ -276,25 +277,46 @@ PolyPtr TimesPoly2(PolyPtr a, PolyPtr b){
 			pd = r;
 			pb = pb->next;
 		}
+		pc = c;
 		c = AddPoly(c, d);
+		Destroy(pc);
 		Destroy(d);
 		pa = pa->next;
 	}
 	return c;
 }
+
+/*数组乘法*/
+ArrayPoly MultPoly(ArrayPoly a, ArrayPoly b){
+	int i, j;
+	ArrayPoly poly;
+	memset(poly.coefArray, 0, sizeof(poly.coefArray));
+	poly.Hightpower = a.Hightpower + b.Hightpower;
+	for (i = 0; i <= a.Hightpower; i++){
+		for (j = 0; j <= b.Hightpower; j++){
+			poly.coefArray[i + j] += a.coefArray[i] * b.coefArray[j];
+		}
+	}
+	return poly;
+}
+
+//定义一个函数指针
+typedef PolyPtr(*Func)(PolyPtr, PolyPtr);
+
 //时间测试函数
-void Time_Spend(PolyPtr a, PolyPtr b){
+void Time_Spend(PolyPtr a, PolyPtr b, Func func){
 	clock_t begin, duration;
 	begin = clock();
-	TimesPoly(a, b);//带测函数
+	//TimesPoly(a, b);//带测函数
+	func(a, b);
 	duration = clock() - begin;
 	printf("用时约%d毫秒\n", duration );
 }
 
-void Time_Spend2(PolyPtr a, PolyPtr b){
+void Time_Spend2(ArrayPoly a, ArrayPoly b){
 	clock_t begin, duration;
 	begin = clock();
-	TimesPoly2(a, b);
+	MultPoly(a, b);
 	duration = clock() - begin;
 	printf("用时约%d毫秒\n", duration);
 }
@@ -305,23 +327,57 @@ void PutPoly(char* filename){
 	int b = 0;
 	srand((unsigned)time(NULL));
 	fp = fopen(filename, "w+");
-	for (int i = 0; i < 1000; i++){
-		a = (float)(rand() % 100);
-		b = rand() % 100;
+	for (int i = 0; i < maxsize; i++){
+		a = (float)(rand() % 10);
+		b = rand() % 1000;
 		fprintf(fp, "%.1f %d ", a, b);
 	}
 	fclose(fp);
 }
 
+/*将链表元素输入到数组里面*/
+ArrayPoly Conversion(PolyPtr a){
+	PolyPtr pa;
+	ArrayPoly array;
+	
+	pa = a->next;
+	memset(array.coefArray, 0, sizeof(array.coefArray));
+	array.Hightpower = 0;
+	while (pa != NULL){
+		if (pa->expn == array.Hightpower){
+			array.coefArray[array.Hightpower] = pa->coef;
+			pa = pa->next;
+		}
+		array.Hightpower++;
+	}
+	array.Hightpower--;
+	return array;
+}
+
+/*数组的输出*/
+void PrintArray(ArrayPoly a){
+	for (int i = 0; i <= a.Hightpower; i++){
+		printf("%6.1f", a.coefArray[i]);
+	}
+	printf("\n");
+	return;
+}
+
 //乘法测试函数
 void testTimes(PolyPtr a, PolyPtr b){
-	Time_Spend(a, b);
-	PolyPtr c = TimesPoly(a, b);
-	PrintPoly(c);
-
-	Time_Spend2(a, b);
+	ArrayPoly e = Conversion(a);
+	ArrayPoly f = Conversion(b);
+	Time_Spend2(e, f);
+	ArrayPoly g = MultPoly(e, f);
+	PrintArray(g);
+	
+	Time_Spend(a, b,TimesPoly2);
 	PolyPtr d = TimesPoly2(a, b);
 	PrintPoly(d);
+
+	Time_Spend(a, b, TimesPoly);
+	PolyPtr c = TimesPoly(a, b);
+	PrintPoly(c);
 	
 	return;
 }
