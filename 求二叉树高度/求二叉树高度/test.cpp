@@ -42,6 +42,7 @@ void FreeBinTree(BinTree BT){
 }
 
 int main(){
+	int arr[3][5] = { 0 };
 	BinTree BT;
 	CreatBinTree(BT);
 
