@@ -8,10 +8,8 @@
 
 
 //求值
-float GetValue(PolyPtr a){
-	float x, sum = 0;
-	printf("请输入X的值：");
-	scanf("%f", &x);
+float GetValue(PolyPtr a,float x){
+	float sum = 0;
 	PolyPtr pa = a->next;
 	while (pa != NULL){
 		if (pa->expn == 0){
@@ -271,17 +269,33 @@ ArrayPoly MultPoly(ArrayPoly a, ArrayPoly b){
 	return poly;
 }
 
-
-//时间测试函数
+//双目运算时间测试函数
 void Time_Spend(PolyPtr a, PolyPtr b, Func func){
 	clock_t begin, duration;
 	begin = clock();
-	//TimesPoly(a, b);//带测函数
-	func(a, b);
+	PolyPtr p = func(a, b);
 	duration = clock() - begin;
 	printf("用时约%d毫秒\n", duration );
+	Destroy(p);
 }
-
+//单目运算时间测试函数
+void Time_Spend1(PolyPtr a, Func_ func){
+	clock_t begin, duration;
+	begin = clock();
+	PolyPtr p = func(a);
+	duration = clock() - begin;
+	printf("用时约%d毫秒\n", duration);
+	Destroy(p);
+}
+//求值运算时间测试函数
+void Time_Spend3(PolyPtr a,float x){
+	clock_t begin, duration;
+	begin = clock();
+	GetValue(a,x);
+	duration = clock() - begin;
+	printf("用时约%d毫秒\n", duration);
+}
+//数组乘法时间测试函数
 void Time_Spend2(ArrayPoly a, ArrayPoly b){
 	clock_t begin, duration;
 	begin = clock();
@@ -289,6 +303,8 @@ void Time_Spend2(ArrayPoly a, ArrayPoly b){
 	duration = clock() - begin;
 	printf("用时约%d毫秒\n", duration);
 }
+
+
 //随机生成数据写入文件
 void PutPoly(const char* filename){
 	FILE* fp = NULL;
@@ -298,7 +314,7 @@ void PutPoly(const char* filename){
 	fp = fopen(filename, "w+");
 	for (int i = 0; i < maxsize; i++){
 		a = (float)(rand() % 10);
-		b = rand() % 100;
+		b = rand() % 5000;
 		fprintf(fp, "%.1f %d ", a, b);
 	}
 	fclose(fp);
@@ -336,20 +352,37 @@ void PrintArray(ArrayPoly a){
 void testTimes(PolyPtr a, PolyPtr b){
 	ArrayPoly e = Conversion(a);
 	ArrayPoly f = Conversion(b);
-	Time_Spend2(e, f);
+	Time_Spend2(e, f);//数组
 	ArrayPoly g = MultPoly(e, f);
 	PrintArray(g);
 	
-	Time_Spend(a, b,TimesPoly2);
+	Time_Spend(a, b,TimesPoly2);//第二种
 	PolyPtr d = TimesPoly2(a, b);
 	PrintPoly(d);
+	Destroy(d);
 
-	Time_Spend(a, b, TimesPoly);
+
+	Time_Spend(a, b, TimesPoly);//第一种
 	PolyPtr c = TimesPoly(a, b);
 	PrintPoly(c);
-	
+	Destroy(c);
+
 	return;
 }
+
+//每个运算的时间
+void testTimes1(PolyPtr a, PolyPtr b){
+	float x;
+	printf("请输入X的值:");
+	scanf("%f", &x);
+	printf("求值运算:"); Time_Spend3(a,x);
+	printf("求导运算:"); Time_Spend1(a, GetDerivation);
+	printf("求积分运算:"); Time_Spend1(a, Getlntegration);
+	printf("求和运算:"); Time_Spend(a, b, AddPoly);
+	printf("求差运算:"); Time_Spend(a, b, MinusPoly);
+	printf("求积运算:"); Time_Spend(a, b, TimesPoly2);
+}
+
 //从文件读入数据
 PolyPtr GetPoly(const char* filename){
 	PolyPtr poly = NULL, p, pTail;
@@ -447,7 +480,7 @@ void PrintPoly(PolyPtr a){
 	p = a->next;
 	if (p->coef != 0){
 		if (p->expn != 0)
-			printf("%3.1f x^%d", p->coef, p->expn);
+			printf("%3.1f*x^%d", p->coef, p->expn);
 		else
 			printf("%3.1f", p->coef);
 	}
@@ -455,7 +488,7 @@ void PrintPoly(PolyPtr a){
 	p = p->next;
 	while (p){
 		if (p->expn != 0)
-			printf("%+3.1f x^%d", p->coef, p->expn);
+			printf("%+3.1f*x^%d", p->coef, p->expn);
 		else
 			printf("%+3.1f", p->coef);
 		p = p->next;
@@ -504,7 +537,7 @@ void Enter(){
 	while (1){
 		
 		int choice = Menu();
-		if (choice < 0 || choice > 9) {
+		if (choice < 0 || choice > 10) {
 			printf("您的输入无效!\n");
 			continue;
 		}
@@ -517,7 +550,10 @@ void Enter(){
 		}
 		switch (choice){
 		case 1:
-			printf("%3.1f\n",GetValue(a));
+			float x;
+			printf("请输入X的值:");
+			scanf("%f", &x);
+			printf("%3.1f\n",GetValue(a,x));
 			break;
 		case 2:
 			Destroy(c);
@@ -567,6 +603,9 @@ void Enter(){
 			break;
 		case 9:
 			testTimes(a, b);
+			break;
+		case 10:
+			testTimes1(a, b);
 			break;
 		}
 	}
