@@ -1,6 +1,6 @@
 
 #define MAXSIZE	10000//数组最大元素
-#define maxsize 300//随机生成数据数
+#define maxsize 500//随机生成数据数
 
 
 //一元多项式元素(链表)	
@@ -28,6 +28,8 @@ PolyPtr Getlntegration(PolyPtr a);//对一元多项式求积分
 PolyPtr AddPoly(PolyPtr a, PolyPtr b);//两个一元多项式的和
 PolyPtr MinusPoly(PolyPtr a, PolyPtr b);//两个一元多项式的差
 PolyPtr TimesPoly(PolyPtr a, PolyPtr b);//乘法第一种形式
+PolyPtr Add_Poly(PolyPtr a, PolyPtr b);//乘法辅助函数
+
 PolyPtr TimesPoly2(PolyPtr a, PolyPtr b);//乘法第二种形式
 ArrayPoly MultPoly(ArrayPoly a, ArrayPoly b);//数组乘法
 void Time_Spend(PolyPtr a, PolyPtr b, Func func);//双目运算时间函数

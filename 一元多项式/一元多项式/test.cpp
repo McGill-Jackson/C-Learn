@@ -177,7 +177,7 @@ PolyPtr MinusPoly(PolyPtr a, PolyPtr b){
 	return d;
 }
 
-//乘法
+//乘法(调用函数)
 PolyPtr TimesPoly(PolyPtr a, PolyPtr b){
 	
 	
@@ -194,25 +194,105 @@ PolyPtr TimesPoly(PolyPtr a, PolyPtr b){
 	while (pa != NULL){
 		pb = b->next;
 		while (pb != NULL){
-			PolyPtr d = (PolyPtr)malloc(sizeof(Poly));
-			d->next = NULL;
-			d->coef = 0;
-			d->expn = 0;
+			
 			PolyPtr r = (PolyPtr)malloc(sizeof(Poly));
 			r->next = NULL;
 			r->coef = pa->coef*pb->coef;
 			r->expn = pa->expn+pb->expn;
-			d->next = r;
-			pc = c;
-			c = AddPoly(c, d);
-			Destroy(pc);
-			free(d);
-			free(r);
+			c = Add_Poly(c, r);
 			pb = pb->next;
 		}
 		pa = pa->next;
 	}
 	return c;
+}
+//乘法(不调用函数)
+PolyPtr Times_Poly(PolyPtr a, PolyPtr b){
+
+
+	PolyPtr c = (PolyPtr)malloc(sizeof(Poly));
+	PolyPtr pa, pb, pc = NULL;
+	if (a == NULL || b == NULL || c == NULL)
+		return NULL;
+	pa = a->next;
+	pb = b->next;
+	c->next = NULL;
+	c->coef = 0;
+	c->expn = 0;
+
+	while (pa != NULL){
+		pb = b->next;
+		while (pb != NULL){
+			
+			PolyPtr r = (PolyPtr)malloc(sizeof(Poly));
+			r->next = NULL;
+			r->coef = pa->coef*pb->coef;
+			r->expn = pa->expn + pb->expn;
+			//c = Add_Poly(c, r);
+			pc = c;
+			int flot = 0;
+			if (pc->next == NULL){
+				pc->next = r;
+			}
+			else while (pc->next != NULL){
+				if (pc->next->expn < r->expn){
+					pc = pc->next;
+					continue;
+				}
+				else if (pc->next->expn == r->expn){
+					pc->next->coef += r->coef;
+					free(r);
+					flot++;
+					break;
+				}
+				else{
+					PolyPtr p = pc->next;
+					pc->next = r;
+					r->next = p;
+					flot++;
+					break;
+				}
+				pc = pc->next;
+			}
+			if (flot == 0){
+				pc->next = r;
+			}
+			pb = pb->next;
+		}
+		pa = pa->next;
+	}
+	return c;
+}
+
+//乘法辅助函数
+PolyPtr Add_Poly(PolyPtr a, PolyPtr b){
+	if (a == NULL || b == NULL)
+		return NULL;
+	PolyPtr pa = a;
+	if (pa->next == NULL){
+		pa->next = b;
+		return a;
+	}
+	while (pa->next != NULL){
+		if (pa->next->expn < b->expn){
+			pa = pa->next;
+			continue;
+		}
+		else if (pa->next->expn == b->expn){
+			pa->next->coef += b->coef;
+			free(b);
+			return a;
+		}
+		else{
+			PolyPtr p = pa->next;
+			pa->next = b;
+			b->next = p;
+			return a;
+		}
+		pa = pa->next;
+	}
+	pa->next = b;
+	return a;
 }
 //乘法第二种方式
 PolyPtr TimesPoly2(PolyPtr a, PolyPtr b){
@@ -352,20 +432,27 @@ void PrintArray(ArrayPoly a){
 void testTimes(PolyPtr a, PolyPtr b){
 	ArrayPoly e = Conversion(a);
 	ArrayPoly f = Conversion(b);
+	printf("数组:");
 	Time_Spend2(e, f);//数组
-	ArrayPoly g = MultPoly(e, f);
-	PrintArray(g);
+	//ArrayPoly g = MultPoly(e, f);
+	//PrintArray(g);
 	
-	Time_Spend(a, b,TimesPoly2);//第二种
-	PolyPtr d = TimesPoly2(a, b);
-	PrintPoly(d);
-	Destroy(d);
+	//Time_Spend(a, b,TimesPoly2);//第二种
+	//PolyPtr d = TimesPoly2(a, b);
+	//PrintPoly(d);
+	//Destroy(d);
+	printf("无函数:");
 
+	Time_Spend(a, b, Times_Poly);//有函数
+	//PolyPtr h = Times_Poly(a, b);
+	//PrintPoly(h);
+	//Destroy(h);
+	printf("有函数:");
 
-	Time_Spend(a, b, TimesPoly);//第一种
-	PolyPtr c = TimesPoly(a, b);
-	PrintPoly(c);
-	Destroy(c);
+	Time_Spend(a, b, TimesPoly);//有函数
+	//PolyPtr c = TimesPoly(a, b);
+	//PrintPoly(c);
+	//Destroy(c);
 
 	return;
 }
@@ -553,53 +640,57 @@ void Enter(){
 			float x;
 			printf("请输入X的值:");
 			scanf("%f", &x);
+			printf("所求得的值为:");
 			printf("%3.1f\n",GetValue(a,x));
 			break;
 		case 2:
-			Destroy(c);
 			c = GetDerivation(a);
 			PutsPoly(".\\Polythree.txt", c);//将结果写入3号文本(下同)
-			printf("运算成功!\n");
+			printf("求导运算:");
+			PrintPoly(c);
+			Destroy(c);
 			break;
 		case 3:
-			Destroy(c);
 			c = Getlntegration(a);
 			PutsPoly(".\\Polythree.txt", c);
-			printf("运算成功!\n");
+			printf("求积分运算:");
+			PrintPoly(c);
+			Destroy(c);
 			break;
 		case 4:
-			Destroy(c);
 			c = AddPoly(a, b);
 			PutsPoly(".\\Polythree.txt", c);
-			printf("运算成功!\n");
+			printf("求和运算:");
+			PrintPoly(c);
+			Destroy(c);
 			break;
 		case 5:
-			Destroy(c);
 			c = MinusPoly(a, b);
 			PutsPoly(".\\Polythree.txt", c);
-			printf("运算成功!\n");
+			printf("求差运算:");
+			PrintPoly(c);
+			Destroy(c);
 			break;
 		case 6:
-			Destroy(c);
 			c = TimesPoly(a, b);
 			PutsPoly(".\\Polythree.txt", c);
-			printf("运算成功!\n");
+			printf("求积运算:");
+			PrintPoly(c);
+			Destroy(c);
 			break;
 		case 7:
 			a=GetPoly(".\\Polyone.txt");
 			SortPoly(a);
 			b=GetPoly(".\\Polytwo.txt");
 			SortPoly(b);
-			//Time_Spend(a, b);
-			//Time_Spend2(a, b);
 			break;
 		case 8:
 			printf("\n这是用户的第一个一元多项式:");
 			PrintPoly(a);
 			printf("\n这是用户的第二个一元多项式:");
 			PrintPoly(b);
-			printf("\n这是用户最近进行的计算的结果:\n");
-			PrintPoly(c);
+			//printf("\n这是用户最近进行的计算的结果:\n");
+			//PrintPoly(c);
 			break;
 		case 9:
 			testTimes(a, b);
