@@ -3,8 +3,8 @@
 #include<stdlib.h>
 #include<string.h>
 
-#define MAXSIZE 128
-#define Max 64
+#define MAXSIZE 1024
+#define Max 256
 typedef  int Weight;
 typedef  int TNode;
 
@@ -196,6 +196,7 @@ void Coding(const char* filename1, PsBookstr b, const char* filename2){
 
 //译码
 void Decoding(const char* filename1, HTthr t, const char* filename2){
+	if (t->size == 1)return;
 	FILE* fp1 = NULL;
 	fp1 = fopen(filename1, "r");
 	if (!fp1)return;
@@ -224,6 +225,38 @@ void Decoding(const char* filename1, HTthr t, const char* filename2){
 		}
 	}
 	printf("\n");
+	fclose(fp1);
+	fclose(fp2);
+}
+
+//验证哈夫曼树
+void Verify(HTthr t){
+	printf("编号 字符 权重 双亲 左孩 右孩\t\n");
+	for (int i = 1; i < t->size; i++){
+		printf("%3d %4c %4d %4d %4d %4d\t", i, t->tree[i].name, t->tree[i].weight, t->tree[i].parent, t->tree[i].lchild, t->tree[i].rchild);
+		printf("\n");
+	}
+}
+
+//验证结果正确性
+void Result(const char* filename1, const char* filename2){
+	FILE* fp1 = NULL;
+	fp1 = fopen(filename1, "r");
+	if (!fp1)return;
+	FILE* fp2 = NULL;
+	fp2 = fopen(filename2, "r");
+	if (!fp2)return;
+
+	while ((!feof(fp1)) || (!feof(fp2))){
+		char c1 = 0;
+		char c2 = 0;
+		fscanf(fp1, "%c", &c1);
+		fscanf(fp2, "%c", &c2);
+		if (c1 != c2){
+			printf("结果错误了.\n");
+			break;
+		}
+	}
 	fclose(fp1);
 	fclose(fp2);
 }
@@ -278,6 +311,7 @@ void Enter(){
 		switch (choice){
 		case 1:
 			GetName(".\\Original.txt", pt);
+			Verify(pt);
 			Write(pt, ".\\Getname.txt", ".\\Weight.txt");
 			CreatTree(pt);
 			CreatBook(pt, pb);
@@ -295,6 +329,7 @@ void Enter(){
 			break;
 		case 4:
 			Decoding(".\\Decoding.txt", upt, ".\\ReOriginal.txt"); 
+			Result(".\\ReOriginal.txt", ".\\Original.txt");
 			break;
 		}
 	}

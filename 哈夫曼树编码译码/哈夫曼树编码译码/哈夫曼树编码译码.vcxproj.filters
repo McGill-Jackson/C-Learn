@@ -29,10 +29,10 @@
     <Text Include="Decoding.txt">
       <Filter>资源文件</Filter>
     </Text>
-    <Text Include="Getname.txt">
+    <Text Include="ReOriginal.txt">
       <Filter>资源文件</Filter>
     </Text>
-    <Text Include="ReOriginal.txt">
+    <Text Include="Getname.txt">
       <Filter>资源文件</Filter>
     </Text>
   </ItemGroup>
