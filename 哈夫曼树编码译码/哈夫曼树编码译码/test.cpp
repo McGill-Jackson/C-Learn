@@ -32,9 +32,7 @@ typedef struct PsBook{
 	Ps book[Max];
 	int size;
 }PsBook,*PsBookstr;
-
 void Reverse(PsBookstr b);
-
 //从文本(无权值)中读取
 void GetName(const char* filename, HTthr t){
 	FILE* fp = NULL;
@@ -314,6 +312,7 @@ void Enter(){
 			Verify(pt);
 			Write(pt, ".\\Getname.txt", ".\\Weight.txt");
 			CreatTree(pt);
+			Verify(pt);
 			CreatBook(pt, pb);
 			PrintfBook(pb);
 			break;
