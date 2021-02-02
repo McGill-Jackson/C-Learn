@@ -150,12 +150,71 @@ void test_strlen(){
 	gets(szInput);
 	printf("The sentence entered is %u characters long.\n", (unsigned)strlen(szInput));
 }
+// 6.从 str2 复制 n 个字符到 str1，但是在重叠内存块这方面，memmove() 是比 memcpy() 更安全的方法。
+//如果目标区域和源区域有重叠的话，memmove() 能够保证源串在被覆盖之前将重叠区域的字节拷贝到目标区域中，
+//复制后源区域的内容会被更改。如果目标区域与源区域没有重叠，则和 memcpy() 函数功能相同。
+void* E_memmove(void *str1, const void *str2, size_t n){
+	if (str1 == NULL || str2 == NULL)return NULL;
+	char* dest;//使用完整类型指针代替void*
+	const char* src;
+	dest = (char*)str1;
+	src = (const char*)str2;
+	if (str2 >= str1){//当str2在str1之后,直接逐个赋值,不会出现未拷贝就被覆盖的情况
+		for (size_t i = 0; i < n; i++){
+			*(dest + i) = *(src + i);
+		}
+	}
+	else{//反之,当str2在str1之前,则从最后一个位置逐个进行赋值
+		for (int i = n-1; i >= 0; i--){
+			*(dest + i) = *(src + i);
+		}
+	}
+	return str1;
+}
+void test_memmove(){
+	char dest[] = "oldstring";
+	char src[] = "newstring";
+
+	printf("Before memmove dest = %s, src = %s\n", dest, src);
+	E_memmove(dest, src, 9);
+	printf("After memmove dest = %s, src = %s\n", dest, src);
+
+	char str[] = "memmove can be very useful......";
+	E_memmove(str + 20, str + 15, 11);
+	puts(str);
+}
+// 7.从存储区 str2 复制 n 个字节到存储区 str1。
+void* E_memcpy(void *str1, const void *str2, size_t n){
+	if (str1 == NULL || str2 == NULL)return NULL;
+	char* dest;//使用完整类型指针代替void*
+	const char* src;
+	dest = (char*)str1;
+	src = (const char*)str2;
+	for (size_t i = 0; i < n; i++){
+		*(dest + i) = *(src + i);//逐个赋值
+	}
+	return str1;
+}
+void test_memcpy(){
+	char dest[] = "oldstring";
+	char src[] = "newstring";
+
+	printf("Before memmove dest = %s, src = %s\n", dest, src);
+	E_memcpy(dest, src, 9);
+	printf("After memmove dest = %s, src = %s\n", dest, src);
+
+	char str[] = "memmove can be very useful......";
+	E_memcpy(str + 20, str + 15, 11);
+	puts(str);
+}
 int main(){
 	//test_strstr();
 	//test_strcat();
 	//test_strcmp();
 	//test_strcpy();
-	test_strlen();
+	//test_strlen();
+	//test_memmove();
+	test_memcpy();
 	system("pause");
 	return 0;
 }
